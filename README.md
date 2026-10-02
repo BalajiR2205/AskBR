@@ -126,14 +126,34 @@ In-memory reference implementations (`InMemorySourceRepository`, `InMemoryPassag
 ask-ambedkar/
 ├── .env.example                     # Environment variables template
 ├── .env.local                       # Local environment configuration
-├── package.json                     # Scripts: dev, build, start, lint, typecheck, test
+├── package.json                     # Scripts: dev, build, start, lint, typecheck, test, ingest, index, search
 ├── tsconfig.json                    # TypeScript strict mode configuration
 ├── next.config.ts                   # Next.js configuration
 ├── eslint.config.mjs                # ESLint configuration
 ├── README.md                        # Project documentation & architecture
 │
+├── data/
+│   ├── corpus/                      # Canonical primary-source JSONL datasets
+│   │   ├── sources.jsonl            # Authoritative sources
+│   │   ├── editions.jsonl           # Edition records
+│   │   ├── sections.jsonl           # Document hierarchy nodes
+│   │   ├── passages.jsonl           # Atomic retrieval passages with provenance
+│   │   └── .ingestion-registry.json # Cryptographic hash idempotency registry
+│   └── index/                       # Persisted offline search indexes
+│       ├── manifest.json            # Index manifest with corpus hash & metadata
+│       ├── bm25/index.json          # BM25 inverted index & document statistics
+│       └── vectors/index.json       # Dense passage vectors & dimensions
+│
+├── scripts/
+│   ├── ingestion/cli.ts             # Segment 4 offline ingestion CLI (npm run ingest)
+│   ├── indexing/cli.ts              # Segment 5 offline indexer CLI (npm run index)
+│   ├── search/cli.ts                # Segment 5 developer search CLI (npm run search)
+│   └── README.md                    # Ingestion & retrieval offline tooling documentation
+│
 ├── test/                            # Automated test suites
-│   └── source-architecture.test.ts  # 23 tests verifying schemas, validation & repositories
+│   ├── source-architecture.test.ts  # Source/Passage schema & repository tests
+│   ├── ingestion-pipeline.test.ts   # Ingestion, segmentation & idempotency tests
+│   └── hybrid-retrieval.test.ts     # BM25, vector, hybrid ranker & IR evaluation tests
 │
 ├── src/
 │   ├── app/                         # Presentation & HTTP Routing (App Router)
@@ -172,22 +192,25 @@ ask-ambedkar/
 │   │   ├── evidence/                # Future Evidence contracts & evaluation logic
 │   │   ├── multilingual/            # Multilingual registry & context
 │   │   ├── passages/                # Canonical Passage model, validation & repository
-│   │   │   ├── repository.ts
-│   │   │   ├── types.ts
-│   │   │   ├── validation.ts
-│   │   │   └── index.ts
 │   │   ├── provenance/              # Provenance model & academic citation formatter
-│   │   │   ├── types.ts
-│   │   │   └── index.ts
 │   │   ├── question_processing/     # Query sanitization & topic heuristics
-│   │   ├── retrieval/               # Future Retrieval contracts (SearchQuery, SearchResult)
+│   │   ├── retrieval/               # Segment 5 Hybrid Retrieval & Indexing
+│   │   │   ├── authority.ts         # Central isAuthoritativeSource predicate
+│   │   │   ├── bm25.ts              # Robertson-Spärck Jones BM25 & phrase booster
+│   │   │   ├── config.ts            # Central retrieval hyperparameters & weights
+│   │   │   ├── corpus-loader.ts     # JSONL corpus loader & hash computation
+│   │   │   ├── embeddings.ts        # EmbeddingProvider interface & env/test providers
+│   │   │   ├── evaluation.ts        # IR metrics (Recall@K, Precision@K, MRR)
+│   │   │   ├── hybrid-engine.ts     # Score normalization, hybrid fusion & deduplication
+│   │   │   ├── lexical-engine.ts    # Filtered BM25 search engine
+│   │   │   ├── manifest.ts          # Index manifest management & stale detection
+│   │   │   ├── tokenizer.ts         # Unicode-aware multilingual tokenizer
+│   │   │   ├── vector-engine.ts     # Filtered dense cosine search engine
+│   │   │   ├── vector-index.ts      # Dense vector storage & cosine similarity
+│   │   │   ├── types.ts             # Search contracts & engine interfaces
+│   │   │   └── index.ts             # Public retrieval exports
 │   │   ├── sessions/                # Ephemeral anonymous sessions & rate limits
 │   │   ├── sources/                 # Canonical Source model, validation, repository & fixtures
-│   │   │   ├── fixtures.ts
-│   │   │   ├── repository.ts
-│   │   │   ├── types.ts
-│   │   │   ├── validation.ts
-│   │   │   └── index.ts
 │   │   └── index.ts                 # Unified domain exports
 │   │
 │   └── mock/                        # Mock data for Segment 2 Chat UI
@@ -235,8 +258,8 @@ npm run build
 - [x] **Segment 1: Visual Identity & Landing Experience** (Academic dark/warm palette, design system)
 - [x] **Segment 2: Chat Interface** (Conversational UI, empty state, source cards, evidence modal)
 - [x] **Segment 3: Primary Source Architecture** (Canonical source/passage/provenance models, repositories, validation, test suite)
-- [ ] **Segment 4: Document Ingestion Pipeline & Corpus Extractors** (BAWS Volumes 1–22, CAD transcripts)
-- [ ] **Segment 5: Hybrid Retrieval & Search Indexing** (BM25 full-text + vector embeddings)
+- [x] **Segment 4: Document Ingestion Pipeline & Corpus Extractors** (Validated corpus, JSONL extraction, stable IDs, registry)
+- [x] **Segment 5: Hybrid Retrieval & Search Indexing** (BM25 full-text + dense vector embeddings + hybrid ranker)
 - [ ] **Segment 6: Evidence Scoring & Answer Generation Engine** (LLM synthesis strictly anchored in retrieved passages)
 - [ ] **Segment 7: Verbatim Source Explorer** (Library browsing experience)
 - [ ] **Segment 8: Multilingual Support** (Marathi, Hindi, Tamil, Telugu, etc.)

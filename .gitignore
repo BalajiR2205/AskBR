@@ -50,4 +50,11 @@ next-env.d.ts
 !/data/inbox/.gitkeep
 !/data/inbox/sample-*
 !/data/inbox/*.sample.*
+/data/corpus/*
+!/data/corpus/.gitkeep
+
+# Index directory
+/data/index/*
+!/data/index/.gitkeep
+
 

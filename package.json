@@ -10,7 +10,10 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test test/**/*.test.ts",
-    "ingest": "tsx scripts/ingestion/cli.ts"
+    "ingest": "tsx scripts/ingestion/cli.ts",
+    "index": "tsx scripts/indexing/cli.ts",
+    "index:build": "tsx scripts/indexing/cli.ts",
+    "search": "tsx scripts/search/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",

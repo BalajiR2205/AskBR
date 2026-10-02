@@ -155,14 +155,171 @@ Outputs are appended in newline-delimited JSON (`JSONL`):
 
 ---
 
-## 10. Future Retrieval & Indexing (Segment 5+)
+## 10. Segment 5: Hybrid Retrieval & Search Indexing
 
-Segment 4 terminates with **validated structured corpus records**. It deliberately excludes:
-- Dense vector embeddings (OpenAI, Gemini, local embeddings)
-- Vector databases (Pinecone, Chroma, Qdrant, etc.)
-- BM25 inverted lexical indexes
-- Neural re-ranking models
-- Hosted LLM calls
+The retrieval subsystem consumes the validated canonical corpus (`data/corpus/*.jsonl`) and builds deterministic, offline-indexed lexical and vector representations in `data/index/`.
 
-Segment 5 will consume the validated `data/corpus/*.jsonl` files to construct retrieval indices and lexical/dense search mechanisms.
+### Architectural Overview
+
+```text
+                    SearchQuery
+                         │
+                 Query Processing
+                         │
+             ┌───────────┴───────────┐
+             │                       │
+       BM25 / Lexical          Vector Search (Dense)
+             │                       │
+             └───────────┬───────────┘
+                         ↓
+                  Score Normalization
+                         ↓
+                   Hybrid Fusion
+                         ↓
+                  Metadata & Authority Filtering
+                         ↓
+                 Top-K Search Results + Provenance
+                         ↓
+             Segment 6 Evidence Evaluation
+```
+
+### Core Invariants
+
+1. **Primary Sources Only**: Only primary materials authored by Dr. B. R. Ambedkar (`classification = PRIMARY`, `status = VERIFIED | PUBLISHED`) can be returned as authoritative evidence.
+2. **Framework Agnostic**: The retrieval domain (`src/core/retrieval/`) contains zero imports of React, Next.js, or browser APIs.
+3. **Offline Indexing**: Index construction is strictly an offline batch process (`npm run index`). The runtime server does not build indexes on request.
+4. **No Hallucinated Embeddings**: When no embedding provider is configured (`EMBEDDING_PROVIDER=none`), vector retrieval gracefully disables and the system transparently falls back to BM25 lexical search (`retrievalMethod: "full_text"`). Fake embeddings are strictly isolated to unit testing (`FakeEmbeddingProvider`).
+5. **Score Normalization**: Lexical BM25 scores (unbounded $\ge 0$) and dense cosine similarities ($[-1, 1]$ mapped to $[0, 1]$) are normalized before weighted linear combination.
+
+---
+
+## 11. Indexing CLI (`npm run index`)
+
+Builds offline BM25 and dense vector indexes from `data/corpus/` into `data/index/`.
+
+### Usage & Flags
+
+```bash
+# Standard build (incremental: reuses unchanged vectors, regenerates lexical index)
+npm run index
+
+# Force complete rebuild from scratch
+npm run index -- --rebuild
+
+# Validate existing index integrity against canonical corpus
+npm run index -- --validate
+
+# Custom corpus and index directories
+npm run index -- --corpus data/corpus --output data/index
+
+# Build with vector embeddings enabled (requires configured EMBEDDING_API_KEY)
+npm run index -- --vector
+```
+
+### Stored Index Structure
+
+```text
+data/index/
+  ├── manifest.json       # Schema version, corpus SHA-256 hash, passage/source counts, config
+  ├── bm25/
+  │   └── index.json      # Inverted index, document lengths, and corpus token statistics
+  └── vectors/
+      └── index.json      # Passage IDs, dense float arrays, and vector dimensions
+```
+
+### Incremental Indexing Strategy
+
+- The indexer computes a content hash (`sha256(passage.normalizedText + passage.sourceId + passage.sectionId)`) for each passage.
+- When existing vector records match the content hash and passage ID, embeddings are preserved without making redundant API calls.
+- Stale or deleted passages are pruned from the vector index.
+- If `--rebuild` is specified, all indexes are recomputed from the validated corpus.
+
+---
+
+## 12. Search CLI (`npm run search`)
+
+Developer-facing search tool for testing retrieval accuracy and inspecting ranking scores.
+
+### Usage & Flags
+
+```bash
+# Natural-language search
+npm run search -- "Ambedkar on caste equality"
+
+# Exact phrase search
+npm run search -- "annihilation of caste" --topK 5
+
+# Filtered search (primary sources only)
+npm run search -- "constitutional morality" --classification PRIMARY --status VERIFIED
+
+# Force lexical-only or vector-only mode
+npm run search -- "fraternity and liberty" --lexical-only
+```
+
+### Output Example
+
+```text
+================================================================================
+Ask Ambedkar — Hybrid Search
+================================================================================
+Query:            "constitutional morality"
+Mode:             hybrid (lexical weight: 0.50, vector weight: 0.50)
+Results returned: 3
+
+1. Speech on the Draft Constitution
+   Author:        Dr. B. R. Ambedkar
+   Classification: PRIMARY (VERIFIED)
+   Edition:       CAD Vol. VII (1948)
+   Section:       Constituent Assembly of India (Pages 38–42)
+   Relevance:     0.9124
+   Method:        hybrid
+   Scores:        Lexical=14.32 (norm: 0.8800) | Vector=0.9448 (norm: 0.9448)
+   Excerpt:       "...Constitutional morality is not a natural sentiment. It has to be cultivated..."
+
+================================================================================
+```
+
+---
+
+## 13. Retrieval Mathematical Specifications
+
+### BM25 Robertson-Spärck Jones Formula
+
+$$
+\text{IDF}(q_i) = \ln \left( \frac{N - n(q_i) + 0.5}{n(q_i) + 0.5} + 1 \right)
+$$
+
+$$
+\text{Score}_{\text{BM25}}(D, Q) = \sum_{q_i \in Q} \text{IDF}(q_i) \cdot \frac{f(q_i, D) \cdot (k_1 + 1)}{f(q_i, D) + k_1 \cdot \left(1 - b + b \cdot \frac{|D|}{\text{avgdl}}\right)}
+$$
+
+- Default parameters: $k_1 = 1.2$, $b = 0.75$.
+- **Field Weighting**: Passage text carries primary weight ($1.0$), section title ($0.3$), source title ($0.2$).
+- **Exact Phrase Boost**: Passages containing the exact consecutive query phrase receive a configurable multiplier boost ($1.5\times$).
+
+### Score Normalization & Hybrid Fusion
+
+$$
+\text{normLex}(s) = \frac{s - s_{\min}}{s_{\max} - s_{\min}} \quad (\text{Min-Max scaling over candidate pool})
+$$
+
+$$
+\text{normVec}(v) = \frac{\cos(\mathbf{q}, \mathbf{d}) + 1}{2} \quad (\text{Mapping } [-1, 1] \text{ to } [0, 1])
+$$
+
+$$
+\text{Score}_{\text{Hybrid}} = w_{\text{lex}} \cdot \text{normLex} + w_{\text{vec}} \cdot \text{normVec}
+$$
+
+- Default engineering weights: $w_{\text{lex}} = 0.5$, $w_{\text{vec}} = 0.5$.
+- Candidate pooling: candidate pool size = $\text{topK} \times \text{candidateMultiplier}$ ($\text{candidateMultiplier} = 4$).
+
+---
+
+## 14. Retrieval Evaluation Harness
+
+The retrieval subsystem includes an evaluation harness (`src/core/retrieval/evaluation.ts`) calculating standard Information Retrieval (IR) metrics against synthetic test fixtures:
+- **Recall@K**: Proportion of relevant passages retrieved within the top $K$ results.
+- **Precision@K**: Proportion of retrieved top $K$ results that are relevant.
+- **MRR (Mean Reciprocal Rank)**: Reciprocal rank of the first relevant passage retrieved.
 
