@@ -42,42 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>
-        <div className="app-container">
-          <header className="site-header">
-            <div className="brand-group">
-              <div className="brand-logo-badge" aria-hidden="true">
-                अ
-              </div>
-              <div className="brand-text">
-                <span className="brand-title">Ask Ambedkar</span>
-                <span className="brand-subtitle">Primary Source Research</span>
-              </div>
-            </div>
-
-            <div className="header-actions">
-              <div className="status-pill" id="system-status-indicator" title="Segment 0: Project Foundation Active">
-                <span className="status-dot"></span>
-                <span>Segment 0 Active</span>
-              </div>
-            </div>
-          </header>
-
-          <main id="main-content">{children}</main>
-
-          <footer className="site-footer">
-            <p className="footer-quote">
-              “Cultivation of mind should be the ultimate aim of human existence.” — Dr. B. R. Ambedkar
-            </p>
-            <p>
-              Ask Ambedkar is an open research platform prioritizing verified primary sources over speculative generation.
-            </p>
-            <p className="font-mono text-muted" style={{ fontSize: '0.75rem' }}>
-              Segment 0: Project Foundation • Anonymous • No Tracking • Primary Sources Only
-            </p>
-          </footer>
-        </div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

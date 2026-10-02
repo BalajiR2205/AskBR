@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface ApiResponse {
   answer: {
@@ -56,22 +57,58 @@ export default function HomePage() {
   ];
 
   return (
-    <>
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-badge">
-          <span>●</span>
-          <span>Segment 0 Foundation — Application Running</span>
+    <div className="app-container">
+      {/* Site Header */}
+      <header className="site-header">
+        <div className="brand-group">
+          <div className="brand-logo-badge" aria-hidden="true">
+            अ
+          </div>
+          <div className="brand-text">
+            <span className="brand-title">Ask Ambedkar</span>
+            <span className="brand-subtitle">Primary Source Research</span>
+          </div>
         </div>
 
-        <h1 className="hero-title">Ask Ambedkar</h1>
-        <p className="hero-tagline">“Ask anything. Discover what Ambedkar wrote.”</p>
-        
-        <p className="hero-description">
-          A public, anonymous research platform helping people explore Dr. B. R. Ambedkar’s documented thought 
-          using strictly primary sources. Factual source-based answers over AI speculation.
-        </p>
-      </section>
+        <div className="header-actions">
+          <Link href="/chat" className="new-chat-btn" style={{ textDecoration: 'none' }}>
+            <span>Open Chat</span>
+            <span aria-hidden="true">💬</span>
+          </Link>
+          <div className="status-pill" id="system-status-indicator" title="Segment 2 Active">
+            <span className="status-dot"></span>
+            <span>Segment 2 Active</span>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content">
+        {/* Hero Section */}
+        <section className="hero-section">
+          <div className="hero-badge">
+            <span>●</span>
+            <span>Segment 2: Chat Interface Active</span>
+          </div>
+
+          <h1 className="hero-title">Ask Ambedkar</h1>
+          <p className="hero-tagline">“Ask anything. Discover what Ambedkar wrote.”</p>
+          
+          <p className="hero-description">
+            A public, anonymous research platform helping people explore Dr. B. R. Ambedkar’s documented thought 
+            using strictly primary sources. Factual source-based answers over AI speculation.
+          </p>
+
+          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link
+              href="/chat"
+              className="query-submit-btn"
+              style={{ textDecoration: 'none', padding: '0.75rem 1.6rem', fontSize: '0.95rem' }}
+            >
+              <span>Launch Chat Interface</span>
+              <span aria-hidden="true">💬</span>
+            </Link>
+          </div>
+        </section>
 
       {/* Interactive Query Demonstration Card */}
       <section className="interactive-query-card" aria-label="Ask a question preview">
@@ -279,6 +316,19 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-    </>
+      </main>
+
+      <footer className="site-footer">
+        <p className="footer-quote">
+          “Cultivation of mind should be the ultimate aim of human existence.” — Dr. B. R. Ambedkar
+        </p>
+        <p>
+          Ask Ambedkar is an open research platform prioritizing verified primary sources over speculative generation.
+        </p>
+        <p className="font-mono text-muted" style={{ fontSize: '0.75rem' }}>
+          Segment 2: Chat Interface Active • Anonymous • No Tracking • Primary Sources Only
+        </p>
+      </footer>
+    </div>
   );
 }
