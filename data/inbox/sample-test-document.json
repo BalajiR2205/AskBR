@@ -1,0 +1,13 @@
+{
+  "documentTitle": "[TEST DOCUMENT — NOT AN AMBEDKAR TEXT]",
+  "pages": [
+    {
+      "pageNumber": 1,
+      "text": "Chapter 1: JSON Architecture Test\n\nThis is synthetic JSON content to verify page array extraction. The JSON extractor reads explicit page numbers and passes raw text to the pipeline without mutation."
+    },
+    {
+      "pageNumber": 2,
+      "text": "Chapter 2: Verification of Second JSON Page\n\nThis is page two of the synthetic JSON fixture. It ensures multiple pages in structured JSON format are recognized properly."
+    }
+  ]
+}

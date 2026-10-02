@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test test/**/*.test.ts"
+    "test": "tsx --test test/**/*.test.ts",
+    "ingest": "tsx scripts/ingestion/cli.ts"
   },
   "dependencies": {
     "next": "16.3.8",
@@ -23,6 +24,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "unpdf": "^1.8.1"
   }
 }

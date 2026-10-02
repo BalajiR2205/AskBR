@@ -1,0 +1,16 @@
+[TEST DOCUMENT — NOT AN AMBEDKAR TEXT]
+This is an automated synthetic test fixture designed to verify page boundary extraction, paragraph segmentation, and stable ID generation in the Ask Ambedkar ingestion pipeline.
+
+--- PAGE 1 ---
+Chapter 1: Synthetic Architecture Test
+
+This is a synthetic paragraph intended for pipeline validation. It demonstrates that the text extractor accurately preserves page boundaries and normalizes redundant whitespace without altering verbatim content.
+
+Another synthetic paragraph to test sentence boundaries. This sentence verifies that the parser does not split sentences arbitrarily. The primary source pipeline maintains stable ordering across all extracted passages.
+
+--- PAGE 2 ---
+Chapter 2: Verification of Structure
+
+This second section tests multi-page document parsing and section mapping. The pipeline should associate this passage with Chapter 2 and record pageStart as 2 and pageEnd as 2.
+
+Final paragraph of the synthetic document verifying complete end-to-end ingestion and persistence.

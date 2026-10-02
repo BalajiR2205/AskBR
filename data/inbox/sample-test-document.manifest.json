@@ -1,0 +1,21 @@
+{
+  "sourceId": "src_fixture_synth_01",
+  "title": "Synthetic Test Document",
+  "subtitle": "Pipeline Architecture Verification Fixture",
+  "sourceType": "BOOK",
+  "classification": "PRIMARY",
+  "status": "VERIFIED",
+  "author": "Dr. B. R. Ambedkar",
+  "originalLanguage": "en",
+  "languagesAvailable": ["en"],
+  "year": 1940,
+  "publisher": "Synthetic Test Press",
+  "sourceReference": "Ask Ambedkar Test Fixtures, Synthetic Series No. 1",
+  "edition": {
+    "id": "edn_fixture_synth_01",
+    "editionName": "Synthetic Reference Edition",
+    "year": 1940,
+    "publisher": "Synthetic Test Press",
+    "isAuthoritative": true
+  }
+}
