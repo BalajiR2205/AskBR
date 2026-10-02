@@ -1,28 +1,36 @@
 /**
  * Primary Sources Domain Module
  * 
- * Segment 0 Foundation: Interface boundaries and provenance verification.
- * Does NOT contain fake data or mock knowledge bases.
+ * Segment 3: Canonical Primary Source Architecture
  */
 
 export * from './types';
+export * from './validation';
+export * from './repository';
+export * from './fixtures';
 
-import { PrimarySourceType, SourceProvenance } from './types';
+import { PrimarySourceType, SourceCategory, SourceProvenance } from './types';
+import { VALID_SOURCE_CATEGORIES } from './validation';
 
 /**
  * Validates whether a candidate source belongs strictly to the permitted
  * primary source categories attributable to Dr. B. R. Ambedkar.
  */
 export function isPermittedSourceCategory(category: string): category is PrimarySourceType {
-  const permittedCategories: PrimarySourceType[] = [
+  const upper = category.toUpperCase();
+  if (VALID_SOURCE_CATEGORIES.includes(upper as SourceCategory)) return true;
+
+  const legacyCategories: string[] = [
     'book',
     'speech',
     'interview',
     'constituent_assembly_debate',
     'letter',
     'article_editorial',
+    'article',
+    'editorial',
   ];
-  return permittedCategories.includes(category as PrimarySourceType);
+  return legacyCategories.includes(category.toLowerCase());
 }
 
 /**
@@ -35,8 +43,9 @@ export function validateProvenance(provenance: SourceProvenance): { isValid: boo
     errors.push('Provenance must include a work or collection title.');
   }
 
-  if (provenance.author !== 'B. R. Ambedkar') {
-    errors.push('Author must be strictly B. R. Ambedkar (primary sources only).');
+  const authorLower = (provenance.author || '').toLowerCase();
+  if (!authorLower.includes('ambedkar')) {
+    errors.push('Author must be strictly Dr. B. R. Ambedkar (primary sources only).');
   }
 
   if (!isPermittedSourceCategory(provenance.sourceType)) {

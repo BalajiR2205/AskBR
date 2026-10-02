@@ -6,6 +6,8 @@
  */
 
 export * as Sources from './sources';
+export * as Passages from './passages';
+export * as Provenance from './provenance';
 export * as QuestionProcessing from './question_processing';
 export * as Retrieval from './retrieval';
 export * as Evidence from './evidence';

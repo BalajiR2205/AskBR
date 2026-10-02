@@ -1,0 +1,7 @@
+/**
+ * Ask Ambedkar — Passages Domain Module
+ */
+
+export * from './types';
+export * from './validation';
+export * from './repository';
